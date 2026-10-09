@@ -2,37 +2,31 @@ services:
   - type: web
     name: academic-ace
     runtime: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn -w 2 -b 0.0.0.0:$PORT run:app
-    envVars:
-      - key: SECRET_KEY
-        generateValue: true
-      - key: ADMIN_USERNAME
-        sync: false
-      - key: ADMIN_PASSWORD
-        sync: false
-      - key: DATABASE_URL
-        fromDatabase:
-          name: academic-ace-db
-          property: connectionString
-      - key: CURRENCY
-        value: ZMW
-      - key: SESSION_COOKIE_SECURE
-        value: "1"
-      - key: PUBLIC_BASE_URL
-        sync: false
-      - key: FLW_SECRET_KEY
-        sync: false
-      - key: FLW_WEBHOOK_SECRET
-        sync: false
-      - key: UPLOAD_FOLDER
-        value: /var/data/academic-ace-uploads
+    plan: starter
+    buildCommand: python -m py_compile server.py
+    startCommand: python server.py migrate && python server.py serve
+    healthCheckPath: /api/health
+    autoDeploy: true
     disk:
-      name: academic-ace-files
+      name: academic-ace-data
       mountPath: /var/data
-      sizeGB: 10
-  - type: pgsql
-    name: academic-ace-db
-    plan: free
-
-  # Attach persistent private storage before accepting real uploads.
+      sizeGB: 1
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_SECRET
+        generateValue: true
+      - key: APP_ORIGIN
+        sync: false
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        value: 10000
+      - key: TRUSTED_HTTPS_INGRESS
+        value: "1"
+      - key: DATABASE_PATH
+        value: /var/data/academic_ace.sqlite3
+      - key: RETENTION_DAYS
+        sync: false
+      - key: TRUST_PROXY
+        value: "0"

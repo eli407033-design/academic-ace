@@ -1,7 +1,10 @@
-__pycache__/
-*.py[cod]
 .env
 .venv/
-instance/*.db
-app/static/uploads/*
-!app/static/uploads/.gitkeep
+__pycache__/
+*.py[cod]
+data/
+backups/*.sqlite3
+backups/*.sqlite3-*
+.pytest_cache/
+tests/*.sqlite3
+tests/*.sqlite3-*

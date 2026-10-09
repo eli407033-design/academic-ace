@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light">
+  <title>Academic Ace | Quotation response</title>
+  <meta name="description" content="Review and respond to your Academic Ace quotation.">
+  <style>
+    body{margin:0;background:#f5f7f6;color:#182535;font:16px/1.65 "Segoe UI",Arial,sans-serif}.card{width:min(680px,calc(100% - 32px));margin:8vh auto;padding:30px;border:1px solid #e2e7e7;border-radius:18px;background:white;box-shadow:0 18px 48px #142b4512}h1,h2{color:#142b45;font-family:Georgia,serif}h1{font-size:2rem;line-height:1.15}.amount{font:700 2.5rem Georgia,serif;color:#142b45}.label{font-size:.8rem;text-transform:uppercase;letter-spacing:.1em;color:#5e6b79}.scope{white-space:pre-wrap;padding:16px;background:#f6f8f7;border-radius:9px}.buttons{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}button{min-height:46px;padding:10px 17px;border:0;border-radius:8px;background:#142b45;color:#fff;font-weight:700;cursor:pointer}button.secondary{background:#edf1ef;color:#142b45}.notice{padding:13px;border-radius:8px;background:#f7f2e8;color:#55482f}.success{background:#e8f2ec;color:#245c44}.error{background:#faeae8;color:#8e3029}.muted{color:#617080}a{color:#28705d}
+  </style>
+</head>
+<body>
+  <main class="card"><a href="/">Academic Ace</a><h1>Quotation review</h1>
+    <div id="state" class="notice" role="status" aria-live="polite">Loading quotation…</div>
+    <section id="quoteDetails" hidden><p id="reference" class="label"></p><p id="amount" class="amount"></p><p id="project" class="muted"></p><h2>Agreed scope</h2><div id="scope" class="scope"></div><p id="validity" class="muted"></p><p class="muted">Accepting records your intention to proceed. The engagement is confirmed only after the service scope and required written terms are agreed by both parties. No payment is taken on this page.</p><div class="buttons"><button id="accept">Accept quotation</button><button id="decline" class="secondary">Decline quotation</button></div></section>
+    <p><a href="/privacy">Privacy notice</a></p>
+  </main>
+  <script>
+    (()=>{
+      'use strict';
+      const state=document.getElementById('state'),details=document.getElementById('quoteDetails'),token=new URLSearchParams(location.search).get('token');let status='';
+      async function read(){if(!token)throw new Error('This quotation link is incomplete. Contact Academic Ace for a current link.');const response=await fetch('/api/quotes/accept?token='+encodeURIComponent(token));const data=await response.json();if(!response.ok)throw new Error(data.error||'This quotation is unavailable.');const q=data.quotation;status=q.status;document.getElementById('reference').textContent='Inquiry '+q.public_reference;document.getElementById('amount').textContent='K'+new Intl.NumberFormat('en-US').format(q.amount_zmw)+' '+q.currency;document.getElementById('project').textContent=q.project_type.replaceAll('_',' ');document.getElementById('scope').textContent=q.scope;document.getElementById('validity').textContent=q.valid_until?'Valid until '+q.valid_until:'No expiry date was specified.';details.hidden=false;if(q.status!=='sent'){document.getElementById('accept').disabled=true;document.getElementById('decline').disabled=true;state.textContent='Quotation status: '+q.status+'. This link no longer accepts a response.';}else{state.textContent='Review the amount, scope and validity before responding.';}}
+      async function respond(choice){if(status!=='sent')return;for(const button of document.querySelectorAll('button'))button.disabled=true;try{const response=await fetch('/api/quotes/accept?token='+encodeURIComponent(token),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({response:choice})});const data=await response.json();if(!response.ok)throw new Error(data.error||'Your response could not be recorded.');status=data.status;state.textContent=data.message+(data.project_created?' A project record has been opened for follow-up.':'');state.className='notice success';}catch(error){state.textContent=error.message;state.className='notice error';for(const button of document.querySelectorAll('button'))button.disabled=false;}}
+      document.getElementById('accept').addEventListener('click',()=>respond('accept'));
+      document.getElementById('decline').addEventListener('click',()=>respond('decline'));
+      read().catch(error=>{state.textContent=error.message;state.className='notice error';});
+    })();
+  </script>
+</body>
+</html>
