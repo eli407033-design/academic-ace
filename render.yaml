@@ -1,32 +1,19 @@
 services:
   - type: web
-    name: academic-ace
-    runtime: python
-    plan: starter
-    buildCommand: python -m py_compile server.py
-    startCommand: python server.py migrate && python server.py serve
-    healthCheckPath: /api/health
+    name: academic-ace-preview
+    runtime: static
+    staticPublishPath: ./public-preview
     autoDeploy: true
-    disk:
-      name: academic-ace-data
-      mountPath: /var/data
-      sizeGB: 1
-    envVars:
-      - key: APP_ENV
-        value: production
-      - key: APP_SECRET
-        generateValue: true
-      - key: APP_ORIGIN
-        sync: false
-      - key: HOST
-        value: 0.0.0.0
-      - key: PORT
-        value: 10000
-      - key: TRUSTED_HTTPS_INGRESS
-        value: "1"
-      - key: DATABASE_PATH
-        value: /var/data/academic_ace.sqlite3
-      - key: RETENTION_DAYS
-        sync: false
-      - key: TRUST_PROXY
-        value: "0"
+    headers:
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: Permissions-Policy
+        value: camera=(), microphone=(), geolocation=()

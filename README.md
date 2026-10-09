@@ -96,13 +96,11 @@ python server.py purge-expired --dry-run
 
 Run `python server.py purge-expired` only after approving the retention schedule. It removes old declined/closed/quoted/accepted inquiries with no project, and completed/cancelled projects (including related inquiry, quotation, and payment rows) past the retention window. It keeps non-PII audit events. The command is not automatically scheduled; configure an owner-reviewed scheduled job and align backup expiry before production. Do not run a purge in production until the retention policy and legal holds are settled.
 
-## Render deployment
+## Render free preview
 
-The included `render.yaml` configures one paid Starter web service and a 1 GB persistent disk mounted at `/var/data`. SQLite must use that disk; a free ephemeral service would lose database writes on restart or deploy. The blueprint generates `APP_SECRET`. In Render's Blueprint setup, provide `APP_ORIGIN` as the final HTTPS service URL and `RETENTION_DAYS` as the owner-approved value (30–3,650). Review the service plan and disk charge before applying the Blueprint.
+The `render.yaml` Blueprint publishes only `public-preview/` as a free static site. It is a public, informational preview: inquiry submission, pricing, sample records, administrator access, quotations, projects, and payment records are not enabled. The preview explicitly tells visitors not to submit personal or academic information. It does not include the SQLite database, server source, test data, backups, or secret configuration in the published directory.
 
-The service startup command applies migrations before serving. After the first healthy deployment, open a private Render Shell for the service and run `python server.py create-admin` interactively to create the owner account. Do not put administrator credentials in the Blueprint or repository. Confirm the created account can log in, then make an encrypted backup to `/var/data/backups/` and test recovery before accepting real inquiries. Render's managed ingress terminates TLS; `TRUSTED_HTTPS_INGRESS=1` permits the application listener to bind to the private service interface. Keep `TRUST_PROXY=0` until forwarded client IP handling has been reviewed for the chosen ingress.
-
-For other hosts, use the production configuration below.
+Render static sites are served from the global CDN and do not run this Python application. The current SQLite-backed business workflow still requires a paid service and persistent database storage before it can safely accept real inquiries. Do not point a free ephemeral web service at the SQLite application: its local database can be lost after restart, spin-down, or redeploy. For other hosts, use the production configuration below.
 
 ## Production deployment boundary
 
